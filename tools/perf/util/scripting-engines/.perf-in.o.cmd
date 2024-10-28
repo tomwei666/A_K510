@@ -1,0 +1,1 @@
+cmd_util/scripting-engines/perf-in.o := rm -f util/scripting-engines/perf-in.o; /work1/github-tomwei/test-module-arm/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-ar rcs util/scripting-engines/perf-in.o

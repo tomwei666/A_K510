@@ -1,0 +1,1 @@
+cmd_libtraceevent-in.o :=  /work1/github-tomwei/test-module-arm/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-ld   -r -o libtraceevent-in.o  event-parse.o event-plugin.o trace-seq.o parse-filter.o parse-utils.o kbuffer-parse.o tep_strerror.o event-parse-api.o

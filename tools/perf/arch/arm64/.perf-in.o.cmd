@@ -1,0 +1,1 @@
+cmd_arch/arm64/perf-in.o :=  /work1/github-tomwei/test-module-arm/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-ld   -r -o arch/arm64/perf-in.o  arch/arm64/util/perf-in.o arch/arm64/tests/perf-in.o

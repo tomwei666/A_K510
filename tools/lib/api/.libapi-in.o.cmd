@@ -1,0 +1,1 @@
+cmd_libapi-in.o :=  /work1/github-tomwei/test-module-arm/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-ld   -r -o libapi-in.o  fd/libapi-in.o fs/libapi-in.o cpu.o debug.o str_error_r.o

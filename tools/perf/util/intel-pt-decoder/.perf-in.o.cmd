@@ -1,0 +1,1 @@
+cmd_util/intel-pt-decoder/perf-in.o :=  /work1/github-tomwei/test-module-arm/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-ld   -r -o util/intel-pt-decoder/perf-in.o  util/intel-pt-decoder/intel-pt-pkt-decoder.o util/intel-pt-decoder/intel-pt-insn-decoder.o util/intel-pt-decoder/intel-pt-log.o util/intel-pt-decoder/intel-pt-decoder.o
