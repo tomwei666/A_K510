@@ -159,10 +159,12 @@ static void init_pte(pmd_t *pmdp, unsigned long addr, unsigned long end,
 {
 	pte_t *ptep;
 
+	//1.FIX_PTE对应的虚拟地址指向addr对应的page table dir的entry的物理地址，虚拟地址保存到ptep.
 	ptep = pte_set_fixmap_offset(pmdp, addr);
 	do {
 		pte_t old_pte = READ_ONCE(*ptep);
 
+	//2. 填充ptep的物理地址完成物理地址paddr到__phys_to_virt(paddr)的映射.
 		set_pte(ptep, pfn_pte(__phys_to_pfn(phys), prot));
 
 		/*
@@ -186,6 +188,10 @@ static void alloc_init_cont_pte(pmd_t *pmdp, unsigned long addr,
 {
 	unsigned long next;
 	pmd_t pmd = READ_ONCE(*pmdp);
+
+    // 1. 找到addr对应的page middle dir的entry,如果entry内容是空，
+	//   重新分配内存并填充到page middle dir的entry.
+	//   pmd是addr对应的page table dir的基地址(物理地址).
 
 	BUG_ON(pmd_sect(pmd));
 	if (pmd_none(pmd)) {
@@ -220,6 +226,7 @@ static void init_pmd(pud_t *pudp, unsigned long addr, unsigned long end,
 	unsigned long next;
 	pmd_t *pmdp;
 
+    // 1.FIX_PMD对应的虚拟地址指向addr对应的page middle dir的entry的物理地址，虚拟地址保存到pmdp.
 	pmdp = pmd_set_fixmap_offset(pudp, addr);
 	do {
 		pmd_t old_pmd = READ_ONCE(*pmdp);
@@ -271,6 +278,10 @@ static void alloc_init_cont_pmd(pud_t *pudp, unsigned long addr,
 	}
 	BUG_ON(pud_bad(pud));
 
+    // 1. 找到addr对应的page upper dir的entry,如果entry内容是空，
+	//   重新分配内存并填充到page upper dir的entry.
+	//   pud是addr对应的page middle dir的基地址(物理地址).
+
 	do {
 		pgprot_t __prot = prot;
 
@@ -308,9 +319,10 @@ static void alloc_init_pud(pgd_t *pgdp, unsigned long addr, unsigned long end,
 	pud_t *pudp;
 	p4d_t *p4dp = p4d_offset(pgdp, addr);
 	p4d_t p4d = READ_ONCE(*p4dp);
-
+    // 1. 找到addr对应的page global dir的entry,如果entry内容是空，
+	//   重新分配内存并填充到page global dir的entry.
+	//   p4d是addr对应的page upper dir的基地址(物理地址).
 	if (p4d_none(p4d)) {
-		//1. 填写 
 		phys_addr_t pud_phys;
 		BUG_ON(!pgtable_alloc);
 		pud_phys = pgtable_alloc(PUD_SHIFT);
@@ -325,6 +337,8 @@ static void alloc_init_pud(pgd_t *pgdp, unsigned long addr, unsigned long end,
 	 */
 	if (system_state != SYSTEM_BOOTING)
 		mutex_lock(&fixmap_lock);
+
+    // 2.FIX_PUD对应的虚拟地址指向addr对应的page upper dir的entry的物理地址，虚拟地址保存到pudp.
 	pudp = pud_set_fixmap_offset(p4dp, addr);
 	do {
 		pud_t old_pud = READ_ONCE(*pudp);

@@ -1,0 +1,100 @@
+commit b93e74b271d826cf9e1b7c8bf35a8b97adc984fe
+Author: tom.fw8687 <tom.fw8687@gmail.com>
+Date:   Sat May 17 12:13:19 2025 +0800
+
+    介绍下fix map对应的API.
+
+diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
+index 826c77c9e..97d09409e 100644
+--- a/arch/arm64/include/asm/pgtable.h
++++ b/arch/arm64/include/asm/pgtable.h
+@@ -612,8 +612,9 @@ static inline unsigned long pmd_page_vaddr(pmd_t pmd)
+ 
+ /* Find an entry in the third-level page table. */
+ #define pte_offset_phys(dir,addr)	(pmd_page_paddr(READ_ONCE(*(dir))) + pte_index(addr) * sizeof(pte_t))
+-
++//作用: 把FIX_PTE对应的虚拟地址映射成物理地址addr
+ #define pte_set_fixmap(addr)		((pte_t *)set_fixmap_offset(FIX_PTE, addr))
++//作用: 如果vaddr对应的pmd的entry是pmd，取出pmd只想的pte，加上offset，就是vaddr对用的pte的entry. 
+ #define pte_set_fixmap_offset(pmd, addr)	pte_set_fixmap(pte_offset_phys(pmd, addr))
+ #define pte_clear_fixmap()		clear_fixmap(FIX_PTE)
+ 
+@@ -735,7 +736,9 @@ static inline pud_t *p4d_pgtable(p4d_t p4d)
+ /* Find an entry in the frst-level page table. */
+ #define pud_offset_phys(dir, addr)	(p4d_page_paddr(READ_ONCE(*(dir))) + pud_index(addr) * sizeof(pud_t))
+ 
++//作用: 把FIX_PUD对应的虚拟地址映射成物理地址addr
+ #define pud_set_fixmap(addr)		((pud_t *)set_fixmap_offset(FIX_PUD, addr))
++//作用: 把vaddr对应的pgd的entry内容取出加上offset，也就是vaddr对应的pmd的entry。
+ #define pud_set_fixmap_offset(p4d, addr)	pud_set_fixmap(pud_offset_phys(p4d, addr))
+ #define pud_clear_fixmap()		clear_fixmap(FIX_PUD)
+ 
+diff --git a/arch/arm64/mm/mmu.c b/arch/arm64/mm/mmu.c
+index cbbf9c66e..b48416f6d 100644
+--- a/arch/arm64/mm/mmu.c
++++ b/arch/arm64/mm/mmu.c
+@@ -310,6 +310,7 @@ static void alloc_init_pud(pgd_t *pgdp, unsigned long addr, unsigned long end,
+ 	p4d_t p4d = READ_ONCE(*p4dp);
+ 
+ 	if (p4d_none(p4d)) {
++		//1. 填写 
+ 		phys_addr_t pud_phys;
+ 		BUG_ON(!pgtable_alloc);
+ 		pud_phys = pgtable_alloc(PUD_SHIFT);
+@@ -1202,7 +1203,9 @@ void vmemmap_free(unsigned long start, unsigned long end,
+ #endif
+ }
+ #endif	/* CONFIG_SPARSEMEM_VMEMMAP */
+-
++//找到addr对应的pud的entry，分成两个部分:
++//1. 从addr对应的pgd地址，从*pgd地址读出pud基地址(物理地址) 
++//2. 从pud基地址和addr，pud_entry_phy=pud物理地址+pud_index(addr)*size，转换成虚拟地址。
+ static inline pud_t * fixmap_pud(unsigned long addr)
+ {
+ 	pgd_t *pgdp = pgd_offset_k(addr);
+@@ -1243,6 +1246,7 @@ void __init early_fixmap_init(void)
+ 	pmd_t *pmdp;
+ 	unsigned long addr = FIXADDR_START;
+ 
++	// 红色框1 a) 步骤找到addr对应的pgd entry的虚拟地址.
+ 	pgdp = pgd_offset_k(addr);
+ 	p4dp = p4d_offset(pgdp, addr);
+ 	p4d = READ_ONCE(*p4dp);
+@@ -1256,13 +1260,20 @@ void __init early_fixmap_init(void)
+ 		BUG_ON(!IS_ENABLED(CONFIG_ARM64_16K_PAGES));
+ 		pudp = pud_offset_kimg(p4dp, addr);
+ 	} else {
++	// 红色框1 c) 向addr对应的pgd entry的虚拟地址,写入pud的基地址.
+ 		if (p4d_none(p4d))
+ 			__p4d_populate(p4dp, __pa_symbol(bm_pud), P4D_TYPE_TABLE);
++
++	//如红色框2 a) 根据addr和vaddr_pgd存储的pud地址，得到vaddr_pud
+ 		pudp = fixmap_pud(addr);
+ 	}
++	//如红色框2 c) vaddr_pud写入对应的pmd的基地址(物理地址)
+ 	if (pud_none(READ_ONCE(*pudp)))
+ 		__pud_populate(pudp, __pa_symbol(bm_pmd), PUD_TYPE_TABLE);
++
++	//如红色框3 a) 根据addr和vaddr_pud存储的pmd地址，得到vaddr_pmd.
+ 	pmdp = fixmap_pmd(addr);
++	//如红色框3 c) vaddr_pmd写入对应的pte的基地址（物理地址）.
+ 	__pmd_populate(pmdp, __pa_symbol(bm_pte), PMD_TYPE_TABLE);
+ 
+ 	/*
+diff --git a/include/asm-generic/fixmap.h b/include/asm-generic/fixmap.h
+index 8cc7b09c1..497334fd0 100644
+--- a/include/asm-generic/fixmap.h
++++ b/include/asm-generic/fixmap.h
+@@ -71,6 +71,8 @@ static inline unsigned long virt_to_fix(const unsigned long vaddr)
+ #endif
+ 
+ /* Return a pointer with offset calculated */
++// 作用: 1. 给idx对应的物理地址映射pte的entry ,pte映射的物理地址是phys
++// 2.返回idx对应的虚拟地址 
+ #define __set_fixmap_offset(idx, phys, flags)				\
+ ({									\
+ 	unsigned long ________addr;					\
+diff --git a/kernel/.fork.c.swp b/kernel/.fork.c.swp
+deleted file mode 100644
+index 2ee94223d..000000000
+Binary files a/kernel/.fork.c.swp and /dev/null differ
