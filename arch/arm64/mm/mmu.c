@@ -310,6 +310,7 @@ static void alloc_init_pud(pgd_t *pgdp, unsigned long addr, unsigned long end,
 	p4d_t p4d = READ_ONCE(*p4dp);
 
 	if (p4d_none(p4d)) {
+		//1. 填写 
 		phys_addr_t pud_phys;
 		BUG_ON(!pgtable_alloc);
 		pud_phys = pgtable_alloc(PUD_SHIFT);
@@ -1202,7 +1203,9 @@ void vmemmap_free(unsigned long start, unsigned long end,
 #endif
 }
 #endif	/* CONFIG_SPARSEMEM_VMEMMAP */
-
+//找到addr对应的pud的entry，分成两个部分:
+//1. 从addr对应的pgd地址，从*pgd地址读出pud基地址(物理地址) 
+//2. 从pud基地址和addr，pud_entry_phy=pud物理地址+pud_index(addr)*size，转换成虚拟地址。
 static inline pud_t * fixmap_pud(unsigned long addr)
 {
 	pgd_t *pgdp = pgd_offset_k(addr);
@@ -1243,6 +1246,7 @@ void __init early_fixmap_init(void)
 	pmd_t *pmdp;
 	unsigned long addr = FIXADDR_START;
 
+	// 红色框1 a) 步骤找到addr对应的pgd entry的虚拟地址.
 	pgdp = pgd_offset_k(addr);
 	p4dp = p4d_offset(pgdp, addr);
 	p4d = READ_ONCE(*p4dp);
@@ -1256,13 +1260,20 @@ void __init early_fixmap_init(void)
 		BUG_ON(!IS_ENABLED(CONFIG_ARM64_16K_PAGES));
 		pudp = pud_offset_kimg(p4dp, addr);
 	} else {
+	// 红色框1 c) 向addr对应的pgd entry的虚拟地址,写入pud的基地址.
 		if (p4d_none(p4d))
 			__p4d_populate(p4dp, __pa_symbol(bm_pud), P4D_TYPE_TABLE);
+
+	//如红色框2 a) 根据addr和vaddr_pgd存储的pud地址，得到vaddr_pud
 		pudp = fixmap_pud(addr);
 	}
+	//如红色框2 c) vaddr_pud写入对应的pmd的基地址(物理地址)
 	if (pud_none(READ_ONCE(*pudp)))
 		__pud_populate(pudp, __pa_symbol(bm_pmd), PUD_TYPE_TABLE);
+
+	//如红色框3 a) 根据addr和vaddr_pud存储的pmd地址，得到vaddr_pmd.
 	pmdp = fixmap_pmd(addr);
+	//如红色框3 c) vaddr_pmd写入对应的pte的基地址（物理地址）.
 	__pmd_populate(pmdp, __pa_symbol(bm_pte), PMD_TYPE_TABLE);
 
 	/*

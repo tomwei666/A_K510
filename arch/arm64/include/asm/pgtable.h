@@ -612,8 +612,9 @@ static inline unsigned long pmd_page_vaddr(pmd_t pmd)
 
 /* Find an entry in the third-level page table. */
 #define pte_offset_phys(dir,addr)	(pmd_page_paddr(READ_ONCE(*(dir))) + pte_index(addr) * sizeof(pte_t))
-
+//作用: 把FIX_PTE对应的虚拟地址映射成物理地址addr
 #define pte_set_fixmap(addr)		((pte_t *)set_fixmap_offset(FIX_PTE, addr))
+//作用: 如果vaddr对应的pmd的entry是pmd，取出pmd只想的pte，加上offset，就是vaddr对用的pte的entry. 
 #define pte_set_fixmap_offset(pmd, addr)	pte_set_fixmap(pte_offset_phys(pmd, addr))
 #define pte_clear_fixmap()		clear_fixmap(FIX_PTE)
 
@@ -735,7 +736,9 @@ static inline pud_t *p4d_pgtable(p4d_t p4d)
 /* Find an entry in the frst-level page table. */
 #define pud_offset_phys(dir, addr)	(p4d_page_paddr(READ_ONCE(*(dir))) + pud_index(addr) * sizeof(pud_t))
 
+//作用: 把FIX_PUD对应的虚拟地址映射成物理地址addr
 #define pud_set_fixmap(addr)		((pud_t *)set_fixmap_offset(FIX_PUD, addr))
+//作用: 把vaddr对应的pgd的entry内容取出加上offset，也就是vaddr对应的pmd的entry。
 #define pud_set_fixmap_offset(p4d, addr)	pud_set_fixmap(pud_offset_phys(p4d, addr))
 #define pud_clear_fixmap()		clear_fixmap(FIX_PUD)
 

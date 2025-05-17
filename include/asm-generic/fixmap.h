@@ -71,6 +71,8 @@ static inline unsigned long virt_to_fix(const unsigned long vaddr)
 #endif
 
 /* Return a pointer with offset calculated */
+// 作用: 1. 给idx对应的物理地址映射pte的entry ,pte映射的物理地址是phys
+// 2.返回idx对应的虚拟地址 
 #define __set_fixmap_offset(idx, phys, flags)				\
 ({									\
 	unsigned long ________addr;					\
