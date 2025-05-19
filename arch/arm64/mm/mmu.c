@@ -1198,6 +1198,8 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
 				continue;
 			}
 
+			// 1. 设置pmd的物理地址__pa(p).
+			// 2. 在L2中bit[1:0]=01，表示一个2M的映射.
 			pmd_set_huge(pmdp, __pa(p), __pgprot(PROT_SECT_NORMAL));
 		} else
 			vmemmap_verify((pte_t *)pmdp, node, addr, next);
