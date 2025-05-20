@@ -59,6 +59,7 @@ static inline void set_section_nid(unsigned long section_nr, int nid)
 #endif
 
 #ifdef CONFIG_SPARSEMEM_EXTREME
+//1. 分配一个root的section，也就是SECTIONS_PER_ROOT(0x100)
 static noinline struct mem_section __ref *sparse_index_alloc(int nid)
 {
 	struct mem_section *section = NULL;
@@ -93,10 +94,12 @@ static int __meminit sparse_index_init(unsigned long section_nr, int nid)
 	if (mem_section[root])
 		return 0;
 
+	//1. 分配一个root的sections.
 	section = sparse_index_alloc(nid);
 	if (!section)
 		return -ENOMEM;
 
+	// 2. mem_section[root]指向这个root的第一个section.
 	mem_section[root] = section;
 
 	return 0;
@@ -254,6 +257,8 @@ static void __init memory_present(int nid, unsigned long start, unsigned long en
 	unsigned long pfn;
 
 #ifdef CONFIG_SPARSEMEM_EXTREME
+	// 1.struct mem_section **mem_section; <=====> struct mem_section *mem_section[NR_SECTION_ROOTS]
+	//  给指针数组mem_section分配内存
 	if (unlikely(!mem_section)) {
 		unsigned long size, align;
 
@@ -272,11 +277,13 @@ static void __init memory_present(int nid, unsigned long start, unsigned long en
 		unsigned long section = pfn_to_section_nr(pfn);
 		struct mem_section *ms;
 
+		// 2.分配一个root的sections
 		sparse_index_init(section, nid);
 		set_section_nid(section, nid);
 
 		ms = __nr_to_section(section);
 		if (!ms->section_mem_map) {
+		// 3. 设置section为SECTION_IS_ONLINE和SECTION_MARKED_PRESENT
 			ms->section_mem_map = sparse_encode_early_nid(nid) |
 							SECTION_IS_ONLINE;
 			section_mark_present(ms);
