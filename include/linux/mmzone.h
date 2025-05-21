@@ -1409,11 +1409,14 @@ static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
 #if (MAX_ORDER - 1 + PAGE_SHIFT) > SECTION_SIZE_BITS
 #error Allocator MAX_ORDER exceeds SECTION_SIZE
 #endif
-
+//作用:作用: pfn所属的section.
+//例如0x4000_0000(1G)开始的地址,则section_index=8.
 static inline unsigned long pfn_to_section_nr(unsigned long pfn)
 {
 	return pfn >> PFN_SECTION_SHIFT;
 }
+//作用: 所属sec(section)的第一个pfn.
+//例如:section是8，则第section=8，则8<<15=0x40000.
 static inline unsigned long section_nr_to_pfn(unsigned long sec)
 {
 	return sec << PFN_SECTION_SHIFT;

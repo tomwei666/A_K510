@@ -199,6 +199,8 @@ static void section_mark_present(struct mem_section *ms)
 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
 }
 
+// 轮询section,start是开始的section的number，
+// 下一个section的number保存到secion_nr.
 #define for_each_present_section_nr(start, section_nr)		\
 	for (section_nr = next_present_section_nr(start-1);	\
 	     ((section_nr != -1) &&				\
@@ -331,6 +333,8 @@ struct page *sparse_decode_mem_map(unsigned long coded_mem_map, unsigned long pn
 }
 #endif /* CONFIG_MEMORY_HOTPLUG */
 
+// 输入: pnum-->section的序号 mem_map:section第一个pfn描述符的地址.
+// ms->section_mem_map包含section的序号和section第一个pfn描述符的信息.
 static void __meminit sparse_init_one_section(struct mem_section *ms,
 		unsigned long pnum, struct page *mem_map,
 		struct mem_section_usage *usage, unsigned long flags)
@@ -547,7 +551,9 @@ static void __init sparse_init_nid(int nid, unsigned long pnum_begin,
 
 		if (pnum >= pnum_end)
 			break;
-
+        // 1. example: 第pnum个section,这个section的第一个pfn变量叫pfn.
+		// 作用: 为第pfn的页描述符的虚拟地址map映射物理内存,
+		//       为这个section所有的pfn的虚拟地址都映射物理内存.
 		map = __populate_section_memmap(pfn, PAGES_PER_SECTION,
 				nid, NULL);
 		if (!map) {
@@ -558,6 +564,7 @@ static void __init sparse_init_nid(int nid, unsigned long pnum_begin,
 			goto failed;
 		}
 		check_usemap_section_nr(nid, usage);
+        // 2.初始化section描述符的信息. 
 		sparse_init_one_section(__nr_to_section(pnum), pnum, map, usage,
 				SECTION_IS_EARLY);
 		usage = (void *) usage + mem_section_usage_size();
