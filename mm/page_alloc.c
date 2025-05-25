@@ -569,9 +569,15 @@ void set_pfnblock_flags_mask(struct page *page, unsigned long flags,
 	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
 	BUILD_BUG_ON(MIGRATE_TYPES > (1 << PB_migratetype_bits));
 
+	// 1.通过pfn所属的section，找到保存migratetype的位图
 	bitmap = get_pageblock_bitmap(page, pfn);
+    // 2.1 找到pfn所在section的index
+	// 2.2 这个pfn在section的index，所属pageblock的index
+	// 2.3 一个pageblock需要4 bit，这个pfn在位图的第多少个bit.
 	bitidx = pfn_to_bitidx(page, pfn);
+    // 3. 这个bitidx所在第几个long字节
 	word_bitidx = bitidx / BITS_PER_LONG;
+	// 4. 在第几个long字节中的多少bit
 	bitidx &= (BITS_PER_LONG-1);
 
 	VM_BUG_ON_PAGE(!zone_spans_pfn(page_zone(page), pfn), page);
