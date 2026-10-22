@@ -7392,11 +7392,9 @@ static void __init free_area_init_core(struct pglist_data *pgdat)
 	pgdat->per_cpu_nodestats = &boot_nodestats;
 
 	for (j = 0; j < MAX_NR_ZONES; j++) {
-		/*printk(KERN_ERR "tom-debug zone j=%d\n",j);*/
 		struct zone *zone = pgdat->node_zones + j;
 		unsigned long size, freesize, memmap_pages;
 		unsigned long zone_start_pfn = zone->zone_start_pfn;
-		printk(KERN_ERR "tom-debug zone j=%d\n",j);
 
 		size = zone->spanned_pages;
 		freesize = zone->present_pages;
@@ -7438,7 +7436,6 @@ static void __init free_area_init_core(struct pglist_data *pgdat)
 		 * when the bootmem allocator frees pages into the buddy system.
 		 * And all highmem pages will be managed by the buddy system.
 		 */
-		/*printk(KERN_ERR "tom-debug zone\n");*/
 		zone_init_internals(zone, j, nid, freesize);
 
 		if (!size)

@@ -449,7 +449,7 @@ static void anon_vma_ctor(void *data)
 
 void __init anon_vma_init(void)
 {
-	printk(KERN_ERR "tom-debug anon_vma=%ld\n",sizeof(struct anon_vma));
+	/*printk(KERN_ERR "tom-debug anon_vma=%ld\n",sizeof(struct anon_vma));*/
 	anon_vma_cachep = kmem_cache_create("anon_vma", sizeof(struct anon_vma),
 			0, SLAB_TYPESAFE_BY_RCU|SLAB_PANIC|SLAB_ACCOUNT,
 			anon_vma_ctor);
