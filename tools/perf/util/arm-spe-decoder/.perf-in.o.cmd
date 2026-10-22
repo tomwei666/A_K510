@@ -1,1 +1,0 @@
-cmd_util/arm-spe-decoder/perf-in.o :=  /work1/github-tomwei/test-module-arm/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-ld   -r -o util/arm-spe-decoder/perf-in.o  util/arm-spe-decoder/arm-spe-pkt-decoder.o util/arm-spe-decoder/arm-spe-decoder.o
