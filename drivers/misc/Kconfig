@@ -508,4 +508,12 @@ source "drivers/misc/ocxl/Kconfig"
 source "drivers/misc/cardreader/Kconfig"
 source "drivers/misc/habanalabs/Kconfig"
 source "drivers/misc/uacce/Kconfig"
+
+config SLUB_PARTIAL_DRV
+	tristate "SLUB partial list test driver"
+	depends on SLUB && DEBUG_FS
+	help
+	  A debugfs-based driver for testing SLUB partial slab behavior.
+	  Say Y to build it into the kernel, M to build as a module.
+
 endmenu

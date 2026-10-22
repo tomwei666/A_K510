@@ -1,0 +1,1 @@
+cmd_/work/explore/A_K510/drivers/misc/slub_partial_drv_standalone/Module.symvers := sed 's/\.ko$$/\.o/' /work/explore/A_K510/drivers/misc/slub_partial_drv_standalone/modules.order | scripts/mod/modpost     -o /work/explore/A_K510/drivers/misc/slub_partial_drv_standalone/Module.symvers -e -i Module.symvers   -T -
